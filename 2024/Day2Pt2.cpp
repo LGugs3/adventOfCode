@@ -12,9 +12,25 @@
 #include <vector>
 #include <iterator>
 
-void removeLevel(std::vector<int>& vec, std::vector<int>::iterator& it)
+void removeLevel(std::vector<int>& vec, std::vector<int>::iterator& it, bool removeFirst = false)
 {
-    it = std::prev(vec.erase(std::next(it)),2);
+    removeFirst ? vec.erase(vec.begin()) : vec.erase(std::next(it));
+    if(removeFirst) it = vec.begin();
+}
+
+bool retestExpectedNums(const std::vector<int>& vec)
+{
+    int startIndex = 0;
+    while (vec[startIndex] == vec[startIndex + 1])
+        startIndex++;
+    return vec[startIndex] < vec[startIndex + 1] ? true : false;
+}
+
+void printVector(const std::vector<int>& vec)
+{
+    for(auto it: vec)
+        std::cout << it << " ";
+    std::cout << std::endl;
 }
 
 int main() {
@@ -48,17 +64,35 @@ int main() {
 
         bool safeReport = true;
         bool levelRemoved = false;
-        //need to use reg for loop for iterator
-        for(auto inIt = outIt.begin(); std::next(inIt) != outIt.end() && safeReport; ++inIt)
+        bool firstIndexRemoved = false;
+        bool attemptedFirstRemoval = false;
+        int firstIndex = *outIt.begin();
+        //need to use reg loop for iterator
+        for(auto inIt = outIt.begin(); std::next(inIt) != outIt.end() && inIt != outIt.end() && safeReport; ++inIt)
         {
             int next = *std::next(inIt);
             //checks if rest of numbers are following increase/decrease standard
             if ((*inIt > next && expectIncreasingNums) || (*inIt < next && !expectIncreasingNums))
             {
+
                 if (!levelRemoved)
                 {
-                    levelRemoved = true;
-                    removeLevel(outIt, inIt);
+                    //assume begin index is wrong
+                    if(!firstIndexRemoved && !attemptedFirstRemoval)
+                    {
+                        removeLevel(outIt, inIt, true);
+                        firstIndexRemoved = true;
+                        expectIncreasingNums = retestExpectedNums(outIt);
+                        attemptedFirstRemoval = true;
+                    }
+                    else
+                    {
+                        outIt.insert(outIt.begin(), firstIndex);
+                        firstIndexRemoved = false;
+                        levelRemoved = true;
+                        removeLevel(outIt, inIt);
+                        expectIncreasingNums = retestExpectedNums(outIt);
+                    }
                 }
                 else
                     safeReport = false;
@@ -71,8 +105,22 @@ int main() {
                 {
                     if (!levelRemoved)
                     {
-                        levelRemoved = true;
-                        removeLevel(outIt, inIt);
+                        //assume begin index is wrong
+                        if(!firstIndexRemoved && !attemptedFirstRemoval)
+                        {
+                            removeLevel(outIt, inIt, true);
+                            firstIndexRemoved = true;
+                            expectIncreasingNums = retestExpectedNums(outIt);
+                            attemptedFirstRemoval = true;
+                        }
+                        else
+                        {
+                            outIt.insert(outIt.begin(), firstIndex);
+                            firstIndexRemoved = false;
+                            levelRemoved = true;
+                            removeLevel(outIt, inIt);
+                            expectIncreasingNums = retestExpectedNums(outIt);
+                        }
                     }
                     else
                         safeReport = false;
@@ -80,6 +128,7 @@ int main() {
             }
         }
         if (safeReport) numSafeReports++;
+        printVector(outIt);
     }
 
     std::cout << numSafeReports << std::endl;
