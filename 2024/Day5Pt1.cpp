@@ -20,7 +20,7 @@ int main() {
         std::cerr << "Error opening file" << std::endl;
 
     std::unordered_map<int, std::vector<int>> updateReqs = std::unordered_map<int, std::vector<int>>();
-    std::vector<std::vector<int>> updateOrder;
+    std::vector<std::vector<int>> testContainer;
 
     const char reqsDel = '|';
     const char orderDel = ',';
@@ -41,29 +41,41 @@ int main() {
     //order
     while(getline(fin, line))
     {
-        auto& ref = updateOrder.emplace_back();
+        auto& vecRef = testContainer.emplace_back();
         std::istringstream iss(line);
         std::string part;
         while(std::getline(iss, part, orderDel))
-            ref.push_back(stoi(part));
+            vecRef.push_back(stoi(part));
     }
 
     //testing cases
     unsigned int orderSum = 0;
-    bool goodOrder = true;
-    for(const auto& outIt : updateOrder)
+    bool testPassed;
+    for(const auto& testCase : testContainer)
     {
-        for(auto inIt = outIt.begin(); inIt != outIt.end(); ++inIt)
+        testPassed = true;
+        for(auto currNum = testCase.begin(); currNum != testCase.end(); ++currNum)
         {
-            auto arr = updateReqs[*inIt];
-            for(auto reqsIt : arr)
+            std::vector<int> rulesList = updateReqs[*currNum];
+
+            // std::cout << "Left number: " << *currNum << std::endl;
+            // for(auto tmp : rulesList)
+            //     std::cout << tmp << std::endl;
+            // std::cout << std::endl;
+
+            for(auto currRuleNum : rulesList)
             {
-                if (std::find(outIt.begin(), inIt, reqsIt) == outIt.end())
-                    goodOrder = false;
+                if (std::find(testCase.begin(), currNum, currRuleNum) != currNum)
+                {
+                    //std::cout << "Wrong number: " << *currNum << std::endl;
+                    testPassed = false;
+                }
             }
+
+            //std::cout << std::endl;
         }
-        if (goodOrder)
-            orderSum += outIt[outIt.size() / 2];
+        if (testPassed)
+            orderSum += testCase[(testCase.size() - 1) / 2];
     }
 
     std::cout << orderSum << std::endl;
